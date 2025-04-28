@@ -12,11 +12,10 @@
         "@puppeteer/browsers": "^2.10.2"
     },
     "scripts": {
-        "test": "npm run test:install && npm run test:server && npm run test:integrations && npm run test:stop",
-        "test:webwebview": "(cd ../highcharts_flutter_webwebview/example/ && flutter drive -d chrome --driver=test_driver/integration_test.dart --target=integration_test/webview_flutter_test.dart)",
-        "test:install": "npm i && npx @puppeteer/browsers install chromedriver@stable",
-        "test:integrations": "npm run test:webwebview",
-        "test:server": "`find chromedriver -name chromedriver -type file` --port=4444 &",
-        "test:stop": "kill `lsof -t -i:4444`"
+        "prepare": "npx @puppeteer/browsers install chromedriver@stable",
+        "start": "`find chromedriver -name chromedriver -type file` --port=4444 &",
+        "stop": "kill `lsof -t -i:4444`",
+        "test": "npm install && npm start && npm run test:webwebview && npm stop",
+        "test:webwebview": "(cd ../highcharts_flutter_webwebview/example/ && flutter drive -d chrome --driver=test_driver/integration_test.dart --target=integration_test/webview_flutter_test.dart)"
     }
 }
