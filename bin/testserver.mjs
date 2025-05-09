@@ -57,34 +57,44 @@ function main() {
         '--driver=test_driver/integration_test.dart',
         '--target=integration_test/webview_flutter_test.dart',
     ], {
-        cwd: Path.join(CWD, '..', 'highcharts_flutter_webwebview', 'example'),
+        cwd: Path.join(CWD, '..', '..', 'dist', 'flutter'),
         shell,
         timeout: 120000,
     });
 
-    flutterDrive.on('exit', () => chromeDriver.kill('SIGKILL'));
-
-    let internalKill = false;
+    let success = false;
 
     flutterDrive.on('error', () => {
         if (!chromeDriver.killed) {
             chromeDriver.kill('SIGKILL');
         }
-        if (!internalKill) {
-            process.exit(1);
+        process.exit(success ? 0 : 1);
+    });
+
+    flutterDrive.on('exit', () => {
+        if (!chromeDriver.killed) {
+            chromeDriver.kill('SIGKILL');
         }
     });
 
     flutterDrive.stdout.on('data', (data) => {
-        process.stdout.write(data.toString());
-        if (data.toString().includes(': All tests passed!')) {
+        const dataString = data.toString();
+
+        process.stdout.write(dataString);
+
+        if (dataString.includes(': All tests passed!')) {
             console.log('All tests successful!');
-            internalKill = true;
+            success = true;
+            flutterDrive.kill();
+        }
+        if (dataString.includes('Some tests failed.')) {
+            console.error('Tests failed.');
             flutterDrive.kill();
         }
     });
 
 }
+
 
 /* *
  *
