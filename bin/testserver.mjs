@@ -33,13 +33,17 @@ const CWD = process.cwd();
 function main() {
     const chromeDriverPath = FS
         .readdirSync(CWD, { recursive: true })
-        .filter(filePath => (
-            filePath.endsWith('chromedriver') ||
-            filePath.endsWith('chromedriver.exe')
-        ))
+        .filter(
+            filePath => [
+                'chromedriver',
+                'chromedriver.exe'
+            ].includes(Path.basename(filePath))
+        )
         .pop();
+    const cwd = Path.join(CWD, '..', 'highcharts_flutter_webwebview', 'example');
     const shell = process.platform === 'win32';
 
+    console.log('Starting', chromeDriverPath);
     const chromeDriver = ChildProcess.execFile(chromeDriverPath, [
         '--port=4444',
     ], {
@@ -50,6 +54,7 @@ function main() {
         process.stdout.write(data.toString());
     });
 
+    console.log('Starting', 'flutter', 'in', cwd);
     const flutterDrive = ChildProcess.execFile('flutter', [
         'drive',
         '-d',
@@ -57,14 +62,15 @@ function main() {
         '--driver=test_driver/integration_test.dart',
         '--target=integration_test/webview_flutter_test.dart',
     ], {
-        cwd: Path.join(CWD, '..', '..', 'dist', 'flutter'),
+        cwd,
         shell,
         timeout: 120000,
     });
 
     let success = false;
 
-    flutterDrive.on('error', () => {
+    flutterDrive.on('error', (err) => {
+        console.error(err);
         if (!chromeDriver.killed) {
             chromeDriver.kill('SIGKILL');
         }
