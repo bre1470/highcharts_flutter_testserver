@@ -30,7 +30,7 @@ const CWD = process.cwd();
  * */
 
 
-function main() {
+async function main() {
     const chromeDriverPath = FS
         .readdirSync(CWD, { recursive: true })
         .filter(
@@ -50,9 +50,21 @@ function main() {
         shell,
     });
 
+    let waitCounter = 100;
+
     chromeDriver.stdout.on('data', (data) => {
-        process.stdout.write(data.toString());
+        const dataString = data.toString();
+
+        process.stdout.write(dataString);
+
+        if (dataString.includes('started successfully')) {
+            waitCounter = 0;
+        }
     });
+
+    while (--waitCounter <= 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
 
     console.log('Starting', 'flutter', 'in', cwd);
     const flutterDrive = ChildProcess.execFile('flutter', [
