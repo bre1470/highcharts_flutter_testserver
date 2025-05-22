@@ -43,74 +43,73 @@ async function main() {
     const cwd = Path.join(CWD, '..', 'highcharts_flutter_webwebview', 'example');
     const shell = process.platform === 'win32';
 
-    console.log('Starting', chromeDriverPath);
-    const chromeDriver = ChildProcess.execFile(chromeDriverPath, [
-        '--port=4444',
-    ], {
-        shell,
-    });
-
     let waitCounter = 100;
 
-    chromeDriver.stdout.on('data', (data) => {
-        const dataString = data.toString();
+    console.log('Starting', chromeDriverPath);
+    const chromeDriver = ChildProcess
+        .execFile(chromeDriverPath, [
+            '--port=4444',
+        ], {
+            shell,
+        })
+        .on('spawn', () => {
+            chromeDriver.stdout.on('data', (data) => {
+                const dataString = data.toString();
 
-        process.stdout.write(dataString);
+                process.stdout.write(dataString);
 
-        if (dataString.includes('started successfully')) {
-            waitCounter = 0;
-        }
-    });
+                if (dataString.includes('started successfully')) {
+                    waitCounter = 0;
+                }
+            });
+        });
 
     while (--waitCounter <= 0) {
         await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    console.log('Starting', 'flutter', 'in', cwd);
-    const flutterDrive = ChildProcess.execFile('flutter', [
-        'drive',
-        '-d',
-        'chrome',
-        '--driver=test_driver/integration_test.dart',
-        '--target=integration_test/webview_flutter_test.dart',
-    ], {
-        cwd,
-        shell,
-        timeout: 120000,
-    });
-
     let success = false;
 
-    flutterDrive.on('error', (err) => {
-        console.error(err);
-        if (!chromeDriver.killed) {
-            chromeDriver.kill('SIGKILL');
-        }
-        process.exit(success ? 0 : 1);
-    });
+    console.log('Starting', 'flutter', 'in', cwd);
+    const flutterDrive = ChildProcess
+        .execFile('flutter', [
+            'drive',
+            '-d',
+            'chrome',
+            '--driver=test_driver/integration_test.dart',
+            '--target=integration_test/webview_flutter_test.dart',
+        ], {
+            cwd,
+            shell,
+            timeout: 120000,
+        })
+        .on('error', (err) => {
+            console.error(err);
+            flutterDrive.kill('SIGKILL');
+        })
+        .on('exit', () => {
+            if (!chromeDriver.killed) {
+                chromeDriver.kill('SIGKILL');
+            }
+            process.exit(success ? 0 : 1);
+        })
+        .on('spawn', () => {
+            flutterDrive.stdout.on('data', (data) => {
+                const dataString = data.toString();
 
-    flutterDrive.on('exit', () => {
-        if (!chromeDriver.killed) {
-            chromeDriver.kill('SIGKILL');
-        }
-    });
+                process.stdout.write(dataString);
 
-    flutterDrive.stdout.on('data', (data) => {
-        const dataString = data.toString();
-
-        process.stdout.write(dataString);
-
-        if (dataString.includes(': All tests passed!')) {
-            console.log('All tests successful!');
-            success = true;
-            flutterDrive.kill();
-        }
-        if (dataString.includes('Some tests failed.')) {
-            console.error('Tests failed.');
-            flutterDrive.kill();
-        }
-    });
-
+                if (dataString.includes(': All tests passed!')) {
+                    console.log('All tests successful!');
+                    success = true;
+                    flutterDrive.kill('SIGKILL');
+                }
+                if (dataString.includes('Some tests failed.')) {
+                    console.error('Tests failed.');
+                    flutterDrive.kill('SIGKILL');
+                }
+            });
+        });
 }
 
 
