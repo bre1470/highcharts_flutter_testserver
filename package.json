@@ -9,7 +9,7 @@
     "homepage": "https://github.com/bre1470/highcharts_flutter_testserver#readme",
     "repository": "https://github.com/bre1470/highcharts_flutter_testserver.git",
     "devDependencies": {
-        "@puppeteer/browsers": "^2.10.10"
+        "@puppeteer/browsers": "^2.13.0"
     },
     "scripts": {
         "clean": "rm -rf chromedriver",
