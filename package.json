@@ -1,6 +1,6 @@
 {
     "private": true,
-    "version": "0.0.1",
+    "version": "0.0.2",
     "name": "@highcharts/highcharts_flutter_testserver",
     "license": "UNLICENSED",
     "description": "Test server for Flutter integration test on web target.",
@@ -9,7 +9,7 @@
     "homepage": "https://github.com/bre1470/highcharts_flutter_testserver#readme",
     "repository": "https://github.com/bre1470/highcharts_flutter_testserver.git",
     "devDependencies": {
-        "@puppeteer/browsers": "^2.13.0"
+        "@puppeteer/browsers": "^2.13.2"
     },
     "scripts": {
         "clean": "rm -rf chromedriver",
